@@ -38,6 +38,12 @@ return {
         "emmet_ls",
         "prismals",
         "pyright",
+        "sqlls",
+        "jsonls",
+        "dockerls",
+        "docker_compose_language_service",
+        "jdtls",
+        "eslint",
       },
       -- auto-install configured servers (with lspconfig)
       automatic_installation = true, -- not the same as ensure_installed

@@ -3,6 +3,7 @@ return {
   event = { "BufReadPre", "BufNewFile" },
   dependencies = {
     "hrsh7th/cmp-nvim-lsp",
+
     { "antosha417/nvim-lsp-file-operations", config = true },
   },
   config = function()
@@ -126,8 +127,32 @@ return {
       on_attach = on_attach,
     })
 
-    -- configure java server
-    lspconfig["java_language_server"].setup({
+    lspconfig.sqlls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    lspconfig.jsonls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    lspconfig.dockerls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    lspconfig.docker_compose_language_service.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    lspconfig.jdtls.setup({
+      capabilities = capabilities,
+      on_attach = on_attach,
+    })
+
+    lspconfig.eslint.setup({
       capabilities = capabilities,
       on_attach = on_attach,
     })
