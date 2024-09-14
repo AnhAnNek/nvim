@@ -43,8 +43,7 @@ return {
         context_commentstring = {
           enable_autocmd = false,
         },
-        -- auto install above language parsers
-        auto_install = true,
+        sync_install = false,
       })
     end,
   },

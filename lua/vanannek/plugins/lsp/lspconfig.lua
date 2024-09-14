@@ -2,11 +2,29 @@ return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
   dependencies = {
-    "hrsh7th/cmp-nvim-lsp",
-
     { "antosha417/nvim-lsp-file-operations", config = true },
+
+    { -- Optional
+      "williamboman/mason.nvim",
+      build = function()
+        pcall(vim.cmd, "MasonUpdate")
+      end,
+    },
+    { "williamboman/mason-lspconfig.nvim" }, -- Optional
+
+    -- Autocompletion
+    { "hrsh7th/nvim-cmp" }, -- Required
+    { "hrsh7th/cmp-nvim-lsp" }, -- Required
+    { "L3MON4D3/LuaSnip" }, -- Required
+    { "rafamadriz/friendly-snippets" },
+    { "hrsh7th/cmp-buffer" },
+    { "hrsh7th/cmp-path" },
+    { "hrsh7th/cmp-cmdline" },
+    { "saadparwaiz1/cmp_luasnip" },
   },
   config = function()
+    require("java").setup()
+
     -- import lspconfig plugin
     local lspconfig = require("lspconfig")
 
@@ -71,42 +89,6 @@ return {
       vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
     end
 
-    -- configure html server
-    lspconfig["html"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- configure typescript server with plugin
-    lspconfig["tsserver"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- configure css server
-    lspconfig["cssls"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- configure tailwindcss server
-    lspconfig["tailwindcss"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- configure svelte server
-    lspconfig["svelte"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    -- configure prisma orm server
-    lspconfig["prismals"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
     -- configure graphql language server
     lspconfig["graphql"].setup({
       capabilities = capabilities,
@@ -121,41 +103,52 @@ return {
       filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
     })
 
-    -- configure python server
-    lspconfig["pyright"].setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    lspconfig.sqlls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    lspconfig.jsonls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    lspconfig.dockerls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
-
-    lspconfig.docker_compose_language_service.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
+    local jdtls_path = "~/opt/homebrew/bin/jdtls" -- Path to jdtls binary
 
     lspconfig.jdtls.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
+      cmd = {
+        jdtls_path,
+        "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+        "-Dosgi.bundles.defaultStartLevel=4",
+        "-Declipse.product=org.eclipse.jdt.ls.core.product",
+        "-Dlog.protocol=true",
+        "-Dlog.level=ALL",
+        "-noverify",
+        "-Xmx1G",
+        "-XX:+IgnoreUnrecognizedVMOptions",
+        "--add-modules=ALL-SYSTEM",
+        "--add-opens",
+        "java.base/java.util=ALL-UNNAMED",
+        "--add-opens",
+        "java.base/java.lang=ALL-UNNAMED",
+      },
+      root_dir = require("lspconfig").util.root_pattern(".git", "pom.xml", "build.gradle"),
     })
 
-    lspconfig.eslint.setup({
-      capabilities = capabilities,
-      on_attach = on_attach,
-    })
+    -- LSP Server Setup
+    local servers = {
+      "cssls",
+      "pyright",
+      "ts_ls",
+      "eslint",
+      "rust_analyzer",
+      "lua_ls",
+      "jsonls",
+      "html",
+      "pylsp",
+      "docker_compose_language_service",
+      "dockerls",
+      "sqlls",
+      "prismals",
+      "svelte",
+      "tailwindcss",
+    }
+    for _, server in ipairs(servers) do
+      lspconfig[server].setup({
+        on_attach = on_attach,
+        capabilities = require("cmp_nvim_lsp").default_capabilities(),
+      })
+    end
 
     -- configure lua server (with special settings)
     lspconfig["lua_ls"].setup({
@@ -174,8 +167,99 @@ return {
               [vim.fn.stdpath("config") .. "/lua"] = true,
             },
           },
+          runtime = { version = "LuaJIT" },
         },
       },
     })
+
+    -- Autocompletion Setup
+    local cmp = require("cmp")
+    cmp.setup({
+      snippet = {
+        expand = function(args)
+          require("luasnip").lsp_expand(args.body)
+        end,
+      },
+      sources = {
+        { name = "nvim_lsp" },
+        { name = "luasnip", keyword_length = 2 },
+        { name = "buffer", keyword_length = 3 },
+        { name = "path" },
+      },
+      mapping = cmp.mapping.preset.insert({
+        ["<C-p>"] = cmp.mapping.select_prev_item(),
+        ["<C-n>"] = cmp.mapping.select_next_item(),
+        ["<CR>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-Space>"] = cmp.mapping.complete(),
+      }),
+    })
+
+    -- Cmdline setup
+    cmp.setup.cmdline("/", {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = { { name = "buffer" } },
+    })
+
+    cmp.setup.cmdline(":", {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = "path" },
+      }, {
+        { name = "cmdline" },
+      }),
+    })
+
+    -- local cmp_action = lspconfig.cmp_action()
+    -- local cmp = require("cmp")
+    -- local cmp_select = { behavior = cmp.SelectBehavior.Select }
+
+    -- require("luasnip.loaders.from_vscode").lazy_load()
+
+    -- -- `/` cmdline setup.
+    -- cmp.setup.cmdline("/", {
+    --   mapping = cmp.mapping.preset.cmdline(),
+    --   sources = {
+    --     { name = "buffer" },
+    --   },
+    -- })
+
+    -- -- `:` cmdline setup.
+    -- cmp.setup.cmdline(":", {
+    --   mapping = cmp.mapping.preset.cmdline(),
+    --   sources = cmp.config.sources({
+    --     { name = "path" },
+    --   }, {
+    --     {
+    --       name = "cmdline",
+    --       option = {
+    --         ignore_cmds = { "Man", "!" },
+    --       },
+    --     },
+    --   }),
+    -- })
+
+    -- cmp.setup({
+    --   snippet = {
+    --     expand = function(args)
+    --       require("luasnip").lsp_expand(args.body)
+    --     end,
+    --   },
+    --   sources = {
+    --     { name = "nvim_lsp" },
+    --     { name = "luasnip", keyword_length = 2 },
+    --     { name = "buffer", keyword_length = 3 },
+    --     { name = "path" },
+    --   },
+    --   mapping = cmp.mapping.preset.insert({
+    --     ["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
+    --     ["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
+    --     ["<CR>"] = cmp.mapping.confirm({ select = true }),
+    --     ["<C-Space>"] = cmp.mapping.complete(),
+    --     ["<C-f>"] = cmp_action.luasnip_jump_forward(),
+    --     ["<C-b>"] = cmp_action.luasnip_jump_backward(),
+    --     ["<Tab>"] = cmp_action.luasnip_supertab(),
+    --     ["<S-Tab>"] = cmp_action.luasnip_shift_supertab(),
+    --   }),
+    -- })
   end,
 }

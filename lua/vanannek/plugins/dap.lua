@@ -29,6 +29,17 @@ function M.config()
     ["<leader>dq"] = { "<cmd>lua require'dap'.close()<cr>", "Quit" },
     ["<leader>dU"] = { "<cmd>lua require'dapui'.toggle({reset = true})<cr>", "Toggle UI" },
   })
+
+  local dap = require('dap')
+
+  dap.adapters.java = function(callback)
+    -- For now, use the nvim-jdtls debug server
+    callback({
+      type = 'server',
+      host = '127.0.0.1',
+      port = 5005
+    })
+  end
 end
 
 return M
