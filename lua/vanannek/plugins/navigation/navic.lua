@@ -50,12 +50,6 @@ function M.config()
       return text
     end,
   })
-
-  lspconfig.jdtls.setup({
-    on_attach = function(client, bufnr)
-      navic.attach(client, bufnr)
-    end,
-  })
 end
 
 return M

@@ -24,7 +24,7 @@ return {
     )
     keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Find Buffers" })
     keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Find Help Tags" })
-    keymap.set("n", "<leader>fs", builtin.lsp_document_symbols, { desc = "Find Symbols" })
+    keymap.set("n", "<leader>fs", "<cmd>Telescope git_status<cr>", { desc = "Find string under cursor in cwd" })
     keymap.set("n", "<leader>fi", "<cmd>AdvancedGitSearch<CR>", { desc = "AdvancedGitSearch" })
     keymap.set("n", "<leader>fo", builtin.oldfiles, { desc = "Find Old Files" })
     keymap.set("n", "<leader>fw", builtin.grep_string, { desc = "Find Word under Cursor" })

@@ -14,6 +14,10 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
   { import = "vanannek.plugins" },
   { import = "vanannek.plugins.lsp" },
+  { import = "vanannek.plugins.navigation" },
+  { import = "vanannek.plugins.session" },
+  { import = "vanannek.plugins.ui" },
+  { import = "vanannek.plugins.git" },
   "LazyVim/LazyVim",
 }, {
   install = {
